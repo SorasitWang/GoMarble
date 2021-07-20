@@ -12,21 +12,29 @@
 #include <iostream>
 #include <stdio.h>
 
+struct Linear {
+    float A;
+    float B;
+    float C;
+} ;
 class Wood {
 	
-	
+
 public :
 	Wood() {
 
 	};
+    Linear eq = Linear();
     int idx[2] = { 0,1 };
     float slope;
 	std::pair<glm::vec3, glm::vec3> pieces;
 	unsigned int VAO, VBO,EBO;
     std::vector<float> vertices;
+
 	void init(Shader shader,glm::vec3 start) {
         
         vertices.push_back(start.x); vertices.push_back(start.y); vertices.push_back(0.0f);
+        pieces.first = start;
         vertices.push_back(start.x); vertices.push_back(start.y); vertices.push_back(0.0f);
         /*float vertices[] = {
             // positions         // colors
@@ -59,7 +67,8 @@ public :
     
 	void draw(Shader shader,glm::vec3 end) {
         vertices[3] = end.x; vertices[4] = end.y; vertices[5] = 0.0f;
-        slope = (vertices[0] - end.x) / (vertices[1] - end.y);
+        pieces.second = end;
+        slope = (vertices[1] - end.y) / (vertices[0] - end.x);
         shader.use();
         glBindVertexArray(VAO);
 

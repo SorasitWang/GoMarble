@@ -150,14 +150,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\camera.h" />
+    <ClInclude Include="Header\Marble.h" />
     <ClInclude Include="header\mesh.h" />
     <ClInclude Include="header\model.h" />
     <ClInclude Include="header\shader_m.h" />
     <ClInclude Include="header\stb_image.h" />
+    <ClInclude Include="header\Util.h" />
     <ClInclude Include="header\Wood.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.fs" />
+    <None Include="header\marble.vs" />
     <None Include="header\wood.fs" />
     <None Include="header\wood.vs" />
     <None Include="vertex.vs" />

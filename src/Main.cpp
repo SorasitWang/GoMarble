@@ -13,7 +13,7 @@
 #include <stdio.h>
 
 #include "../header/Wood.h"
-
+#include "../header/Marble.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow* window, float deltatIme, Shader boxShader);
@@ -23,12 +23,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_WIDTH = 600;
 const unsigned int SCR_HEIGHT = 600;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 float xPos, yPos;
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 bool adding = false;
 
@@ -74,7 +78,7 @@ int main()
     // build and compile our shader program
     // ------------------------------------
     Shader ourShader("./header/wood.vs", "./header/wood.fs"); // you can name your shader files however you like
-
+    Shader marbleShader("./header/marble.vs", "./header/wood.fs");
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
@@ -83,6 +87,8 @@ int main()
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     // glBindVertexArray(0);
     Wood a = Wood();
+    Marble m = Marble();
+    m.init(marbleShader);
 
     
 
@@ -90,6 +96,9 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
         // input
         // -----
         processInput(window);
@@ -100,8 +109,9 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render the triangle
-        for (auto w : map)
+       for (auto w : map)
             w.draw(ourShader);
+        m.draw(marbleShader,deltaTime,map);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

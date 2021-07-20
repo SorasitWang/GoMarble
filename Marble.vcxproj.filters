@@ -47,6 +47,12 @@
     <ClInclude Include="header\Wood.h">
       <Filter>Header Files\Wood</Filter>
     </ClInclude>
+    <ClInclude Include="Header\Marble.h">
+      <Filter>Header Files\Marble</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="header\wood.vs">
@@ -60,6 +66,9 @@
     </None>
     <None Include="fragment.fs">
       <Filter>Header Files</Filter>
+    </None>
+    <None Include="header\marble.vs">
+      <Filter>Header Files\Marble</Filter>
     </None>
   </ItemGroup>
 </Project>

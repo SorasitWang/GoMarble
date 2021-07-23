@@ -24,10 +24,12 @@ public:
 	float h = 1.0f;
 	glm::vec3 position = glm::vec3(-0.8f, h, 0.0f);
 	glm::vec3 velocity = glm::vec3(0.0f,0.0f,0.0f);
-	float g = -0.3;
+	float g = -0.5;
+	float lost = 1;
 	float slope;
 	float t = 0.0f;
 	float velo;
+	int col=-1;
 
 
 	void init(Shader shader) {
@@ -78,32 +80,77 @@ public:
 		shader.setMat4("model", model);
 
 		glBindVertexArray(this->VAO);
-
+		glLineWidth(1);
 		glDrawElements(GL_TRIANGLES, 73 * 3, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 	}
 
 	void onWood(std::vector<Wood> wood) {
-		for (Wood w : wood) {
-			glm::vec3 tmp = glm::vec3(position.x + 1.0f, position.y + (-1/w.slope), position.z);
-			auto re = lineIntersection(w.pieces.first,w.pieces.second,this->position,tmp);
-			std::cout << w.slope << "  " <<glm::distance(re, position)<<std::endl;
-			float size = sqrt(g * (position.y-h) * 2);
-			std::cout << re.x <<" " <<re.y << std::endl;
-			if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re,position)<this->radius ) {
-				
-				float angle = glm::atan(w.slope);
-				velocity.x = size * glm::cos(angle); velocity.y = size * glm::sin(angle);
-				std::cout << "Yes" << std::endl;
-				//return;
+		float angle = -1 * glm::degrees(glm::atan(velocity.y / velocity.x));
+		//std::cout << angle;
+		for (int i = 0; i < wood.size(); i++) {
+			auto w = wood[i];
+			glm::vec3 tmp = glm::vec3(position.x + 1.0f, position.y + (-1 / w.slope), position.z);
+			auto re = lineIntersection(w.pieces.first, w.pieces.second, this->position, tmp);
+
+			float angleWood = glm::degrees(glm::atan(w.slope));
+			//std::cout << angleWood << std::endl;
+			
+			if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < this->radius) {
+				float size = 1;
+				if (col != i) {
+					col = i;
+					std::cout << "ss " << angle << " " << angleWood << 90 - angle - angleWood << std::endl;
+					size = glm::distance(velocity, glm::vec3(0.0f));
+					velocity.x = (size * glm::sin(glm::radians(90 - angle - angleWood)) ) * glm::cos(glm::radians(angleWood));
+					velocity.y = (size * glm::sin(glm::radians(90 - angle - angleWood)) ) * glm::sin(glm::radians(angleWood));
+					//std::cout << ;
+					
+				}
+				float sizeG=0;
+				if (velocity.y > 0) sizeG = g * t * glm::sin(glm::radians(angleWood));
+				else sizeG = g * t * glm::sin(glm::radians(angleWood));
+				std::cout << sizeG << " " << velocity.y << " " << glm::sin(glm::radians(angleWood))<< std::endl;
+				velocity.x += sizeG * glm::cos(glm::radians(angleWood));
+				velocity.y += sizeG * glm::sin(glm::radians(angleWood));
+
+				return;
+			}
+			/*else {
+				velocity.y += g * t;
+			}*/
+			//velocity *= glm::sin(glm::radians(90-angle-angleWood));
+			
+			//std::cout << w.slope << "  " <<glm::distance(re, position)<<std::endl;
+			//float size = sqrt(std::max(g*(position.y-h),0.0f) * 2);
+			
+		}/*
+			//std::cout << position.y << " " << h << " " << size<< std::endl;
+			if (size < 0.005f) {
+				size += g * t;
+			}
+			else if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < this->radius) {
+				if (col != i) {
+					h *= 0.8;
+					col = i;
+				}
+				size = sqrt(std::max(g * (position.y - h), 0.0f) * 2);
 			}
 			else {
-				
+
 				velocity.y += g * t;
+				continue;
 			}
-		}
-		if(wood.size()==0)
+				
+				float angle = glm::atan(w.slope);
+				velocity.x = size * glm::cos(angle); velocity.y = (size+g*t) * glm::sin(angle);
+				std::cout << size << " " << velocity.x << " " <<velocity.y << std::endl;
+				//return;
+			}*/
+			
+		
+		
 		velocity.y += g * t;
 		//return false;
 	}

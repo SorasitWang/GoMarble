@@ -27,6 +27,7 @@ public :
     Linear eq = Linear();
     int idx[2] = { 0,1 };
     float slope;
+    float friction = 0.05f;
 	std::pair<glm::vec3, glm::vec3> pieces;
 	unsigned int VAO, VBO,EBO;
     std::vector<float> vertices;
@@ -79,6 +80,7 @@ public :
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		glBindVertexArray(this->VAO);
+        glLineWidth(3);
         glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
@@ -87,6 +89,7 @@ public :
     void draw(Shader shader) {
         shader.use();
         glBindVertexArray(this->VAO);
+        glLineWidth(3);
         glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 

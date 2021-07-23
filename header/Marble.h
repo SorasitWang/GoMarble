@@ -25,6 +25,7 @@ public:
 	glm::vec3 position = glm::vec3(-0.8f, h, 0.0f);
 	glm::vec3 velocity = glm::vec3(0.0f,0.0f,0.0f);
 	float g = -0.5;
+	float mass = 1;
 	float lost = 1;
 	float slope;
 	float t = 0.0f;
@@ -111,10 +112,17 @@ public:
 				float sizeG=0;
 				if (velocity.y > 0) sizeG = g * t * glm::sin(glm::radians(angleWood));
 				else sizeG = g * t * glm::sin(glm::radians(angleWood));
-				std::cout << sizeG << " " << velocity.y << " " << glm::sin(glm::radians(angleWood))<< std::endl;
+				//std::cout << sizeG << " " << velocity.y << " " << velocity.x << " "<< glm::sin(glm::radians(angleWood))<< std::endl;
+				float vfriction = w.staticFrict * g * glm::sin(glm::radians(angleWood)) * t;
+				//velocity.x += -copysign(1.0, velocity.x)*vfriction * glm::cos(glm::radians(angleWood));
+				//velocity.y += -copysign(1.0, velocity.y)*vfriction * glm::sin(glm::radians(angleWood));
 				velocity.x += sizeG * glm::cos(glm::radians(angleWood));
+				
 				velocity.y += sizeG * glm::sin(glm::radians(angleWood));
-
+				float rat = 1 - (vfriction / glm::distance(velocity, glm::vec3(0.0f)));
+				//std::cout << rat << std::endl;
+				velocity.x *= rat;
+				velocity.y *= rat;
 				return;
 			}
 			/*else {

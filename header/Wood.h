@@ -27,7 +27,7 @@ public :
     Linear eq = Linear();
     int idx[2] = { 0,1 };
     float slope;
-    float friction = 0.05f;
+    float staticFrict = 0.5f;
 	std::pair<glm::vec3, glm::vec3> pieces;
 	unsigned int VAO, VBO,EBO;
     std::vector<float> vertices;

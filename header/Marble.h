@@ -30,10 +30,12 @@ public:
 	float slope;
 	float t = 0.0f;
 	float velo;
+	bool stable = false;
 	int col=-1;
 
 
-	void init(Shader shader) {
+	void init(Shader shader,glm::vec3 startPos) {
+		position = startPos;
 		float vertices[360 / 5 * 3 + 3];
 		int indx[73 * 3], idx = 3;
 		vertices[0] = 0.0f; vertices[1] = 0.0f; vertices[2] = 0.0f;
@@ -72,11 +74,12 @@ public:
 		shader.use();
 		
 		t = deltaTime;
-		//std::cout << g *  << std::endl;
+		//std::cout << velocity.y  << std::endl;
 		position += velocity * deltaTime;
 		glm::mat4 model = glm::mat4(1.0f);
 
 		onWood(woods);
+		//std::cout << position.y << std::endl;
 		model = glm::translate(model, position);
 		shader.setMat4("model", model);
 
@@ -90,40 +93,65 @@ public:
 	void onWood(std::vector<Wood> wood) {
 		float angle = -1 * glm::degrees(glm::atan(velocity.y / velocity.x));
 		//std::cout << angle;
+		glm::vec3 velo = velocity;
 		for (int i = 0; i < wood.size(); i++) {
 			auto w = wood[i];
-			glm::vec3 tmp = glm::vec3(position.x + 1.0f, position.y + (-1 / w.slope), position.z);
-			auto re = lineIntersection(w.pieces.first, w.pieces.second, this->position, tmp);
-
-			float angleWood = glm::degrees(glm::atan(w.slope));
-			//std::cout << angleWood << std::endl;
-			
-			if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < this->radius) {
-				float size = 1;
-				if (col != i) {
-					col = i;
-					std::cout << "ss " << angle << " " << angleWood << 90 - angle - angleWood << std::endl;
-					size = glm::distance(velocity, glm::vec3(0.0f));
-					velocity.x = (size * glm::sin(glm::radians(90 - angle - angleWood)) ) * glm::cos(glm::radians(angleWood));
-					velocity.y = (size * glm::sin(glm::radians(90 - angle - angleWood)) ) * glm::sin(glm::radians(angleWood));
-					//std::cout << ;
-					
-				}
-				float sizeG=0;
-				if (velocity.y > 0) sizeG = g * t * glm::sin(glm::radians(angleWood));
-				else sizeG = g * t * glm::sin(glm::radians(angleWood));
-				//std::cout << sizeG << " " << velocity.y << " " << velocity.x << " "<< glm::sin(glm::radians(angleWood))<< std::endl;
-				float vfriction = w.staticFrict * g * glm::sin(glm::radians(angleWood)) * t;
-				//velocity.x += -copysign(1.0, velocity.x)*vfriction * glm::cos(glm::radians(angleWood));
-				//velocity.y += -copysign(1.0, velocity.y)*vfriction * glm::sin(glm::radians(angleWood));
-				velocity.x += sizeG * glm::cos(glm::radians(angleWood));
+			if (!(position.x <= wood[i].border.maxX && position.x >= wood[i].border.minX
+				&& position.y <= wood[i].border.maxY+radius && position.y >= wood[i].border.minY)) {
+				continue;
+			}
+			for (int j = 0; j < wood[i].vertices.size()-6; j += 3) {
 				
-				velocity.y += sizeG * glm::sin(glm::radians(angleWood));
-				float rat = 1 - (vfriction / glm::distance(velocity, glm::vec3(0.0f)));
-				//std::cout << rat << std::endl;
-				velocity.x *= rat;
-				velocity.y *= rat;
-				return;
+				float slope = (wood[i].vertices[j+1]- wood[i].vertices[j + 4]) / (wood[i].vertices[j] - wood[i].vertices[j+3]);
+				glm::vec3 tmp = glm::vec3(position.x + 1.0f, position.y + (-1 / slope), position.z);
+				glm::vec3 start = glm::vec3(wood[i].vertices[j], wood[i].vertices[j + 1], wood[i].vertices[j + 2]);
+				glm::vec3 end = glm::vec3(wood[i].vertices[j+3], wood[i].vertices[j + 4], wood[i].vertices[j + 5]);
+				auto re = lineIntersection(start, end, this->position, tmp);
+
+				float angleWood = glm::degrees(glm::atan(slope));
+				
+
+				if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < this->radius+0.01) {
+					velo = velocity;
+					std::cout << "angleWood " << angleWood << std::endl;
+					float size = 1;
+					size = glm::distance(velo, glm::vec3(0.0f));
+					if (size > 0.5 && !stable)
+						velo = glm::vec3(0.5) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
+					else if (col != i) {
+						stable = false;
+						col = i;
+						//std::cout << "ss " << angle << " " << angleWood << 90 - angle - angleWood << std::endl;
+
+
+						//glm::normalize(velocity);
+						glm::vec3 bounce = glm::vec3(0.1) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
+						velo.x = (size * glm::sin(glm::radians(90 - angle - angleWood))) * glm::cos(glm::radians(angleWood));
+						velo.y = (size * glm::sin(glm::radians(90 - angle - angleWood))) * glm::sin(glm::radians(angleWood));
+
+						//std::cout << ;
+
+					}
+					else {
+						stable = true;
+					}
+					//std::cout << size << std::endl;
+
+					float sizeG = 0;
+					if (velo.y > 0) sizeG = g * t * glm::sin(glm::radians(angleWood));
+					else sizeG = g * t * glm::sin(glm::radians(angleWood));
+					//std::cout << sizeG << " " << velocity.y << " " << velocity.x << " "<< glm::sin(glm::radians(angleWood))<< std::endl;
+					float vfriction = w.staticFrict * g * glm::sin(glm::radians(angleWood)) * t;
+					//velocity.x += -copysign(1.0, velocity.x)*vfriction * glm::cos(glm::radians(angleWood));
+					//velocity.y += -copysign(1.0, velocity.y)*vfriction * glm::sin(glm::radians(angleWood));
+					velo.x += sizeG * glm::cos(glm::radians(angleWood));
+
+					velo.y += sizeG * glm::sin(glm::radians(angleWood));
+					float rat = 1 - (vfriction / glm::distance(velo, glm::vec3(0.0f)));
+					//std::cout << rat << std::endl;
+					velo.x *= rat;
+					velo.y *= rat;
+				}
 			}
 			/*else {
 				velocity.y += g * t;
@@ -133,7 +161,8 @@ public:
 			//std::cout << w.slope << "  " <<glm::distance(re, position)<<std::endl;
 			//float size = sqrt(std::max(g*(position.y-h),0.0f) * 2);
 			
-		}/*
+		}
+		velocity = velo;/*
 			//std::cout << position.y << " " << h << " " << size<< std::endl;
 			if (size < 0.005f) {
 				size += g * t;
@@ -158,8 +187,9 @@ public:
 			}*/
 			
 		
-		
+		//std::cout << "ss "<<velocity.y << std::endl;
 		velocity.y += g * t;
+		//std::cout << "aa" << velocity.y << std::endl;
 		//return false;
 	}
 

@@ -35,10 +35,11 @@ float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
 bool adding = false;
+Marble m = Marble();
 
 std::vector<Wood> map;
 glm::vec3 start, end;
-
+std::vector<Marble> marbles;
 int main()
 {
     // glfw: initialize and configure
@@ -86,10 +87,10 @@ int main()
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     // glBindVertexArray(0);
-    Wood a = Wood();
-    Marble m = Marble();
-    m.init(marbleShader);
-
+    
+   
+    //m.init(marbleShader, glm::vec3(0.0f));
+    marbles.push_back(m);
     
 
     // render loop
@@ -109,10 +110,16 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render the triangle
-       for (auto w : map)
-            w.draw(ourShader);
-        m.draw(marbleShader,deltaTime,map);
-
+        
+       //w.draw(ourShader);
+       for (auto &w : map)
+           w.draw(ourShader);
+       for (auto &mm : marbles) {
+           //std::cout << mm.position.y << std::endl;
+           mm.draw(marbleShader, deltaTime, map);
+       }
+           //std::cout << m.velocity.y << std::endl;
+       
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
@@ -164,7 +171,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     if (adding == true) {
    
         end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
-
+        //std::cout << end.x << std::endl;
         map[map.size() - 1].draw(shader, end);
     }
    
@@ -178,11 +185,12 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             start = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             if (adding == false) {
-                std::cout << "first" << std::endl;
+                //std::cout << "first" << std::endl;
                 adding = true;
                 map.push_back(Wood());
-                map[map.size() - 1].init(shader, start);
+                map[map.size()-1].init(shader, start);
             }
+           
          
     }
 
@@ -191,5 +199,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
         
         map[map.size() - 1].draw(shader,end);
+        //std::cout << map[map.size() - 1].vertices.size() << " " << map[map.size() - 1].idx.size() << std::endl;
+      
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+        Shader marbleShader("./header/marble.vs", "./header/wood.fs");
+        marbles.push_back(Marble());
+        marbles[marbles.size()-1].init(marbleShader, glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f));
+        marbles[marbles.size() - 1].draw(marbleShader, deltaTime, map);
     }
 }

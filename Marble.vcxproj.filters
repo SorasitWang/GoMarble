@@ -56,6 +56,9 @@
     <ClInclude Include="header\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="header\BIn.h">
+      <Filter>Header Files\Bin</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="header\wood.vs">

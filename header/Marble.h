@@ -11,6 +11,7 @@
 #include "../header/shader_m.h"
 #include "../header/stb_image.h"
 #include "../header/camera.h"
+#include "../header/bin.h"
 #include <iostream>
 #include "Util.h"
 class Marble {
@@ -71,10 +72,10 @@ public:
 
 	}
 
-	void draw(Shader shader,float deltaTime,std::vector<Wood> woods) {
+	void draw(Shader shader,float deltaTime,std::vector<Wood> woods,Bin bin) {
 		if (out) return;
 		shader.use();
-		
+		bin.checkIn(position);
 		t = deltaTime;
 		//std::cout << velocity.y  << std::endl;
 		position += velocity * deltaTime;

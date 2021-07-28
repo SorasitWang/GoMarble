@@ -14,6 +14,7 @@
 
 #include "../header/Wood.h"
 #include "../header/Marble.h"
+#include "../header/Bin.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow* window, float deltatIme, Shader boxShader);
@@ -36,6 +37,7 @@ float lastFrame = 0.0f;
 
 bool adding = false;
 Marble m = Marble();
+Bin bin = Bin();
 
 std::vector<Wood> map;
 glm::vec3 start, end;
@@ -83,7 +85,7 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
 
-
+    bin.init(marbleShader);
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     // glBindVertexArray(0);
@@ -110,13 +112,13 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render the triangle
-        
+        bin.draw(marbleShader,deltaTime);
        //w.draw(ourShader);
        for (auto &w : map)
            w.draw(ourShader);
        for (auto &mm : marbles) {
            //std::cout << mm.position.y << std::endl;
-           mm.draw(marbleShader, deltaTime, map);
+           mm.draw(marbleShader, deltaTime, map,bin);
        }
            //std::cout << m.velocity.y << std::endl;
        
@@ -207,6 +209,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         Shader marbleShader("./header/marble.vs", "./header/wood.fs");
         marbles.push_back(Marble());
         marbles[marbles.size()-1].init(marbleShader, glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f));
-        marbles[marbles.size() - 1].draw(marbleShader, deltaTime, map);
+        marbles[marbles.size() - 1].draw(marbleShader, deltaTime, map,bin);
     }
 }

@@ -90,7 +90,7 @@ int main()
     
    
     //m.init(marbleShader, glm::vec3(0.0f));
-    marbles.push_back(m);
+    //marbles.push_back(m);
     
 
     // render loop

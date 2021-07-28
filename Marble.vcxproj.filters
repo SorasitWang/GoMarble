@@ -19,6 +19,9 @@
     <Filter Include="Header Files\Marble">
       <UniqueIdentifier>{c93b7f5c-9aa9-466f-b9ab-ed8e797b8276}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Bin">
+      <UniqueIdentifier>{5e0fae64-ed8d-46c8-99c4-a709d46bad6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c">

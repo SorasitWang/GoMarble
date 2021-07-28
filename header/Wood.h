@@ -34,7 +34,7 @@ public :
 	std::pair<glm::vec3, glm::vec3> pieces;
 	unsigned int VAO, VBO,EBO;
     std::vector<float> vertices;
-    float smoothnes = 0.05;
+    float smoothnes = 0.5;
     
 	void init(Shader shader,glm::vec3 start) {
        

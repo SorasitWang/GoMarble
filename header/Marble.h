@@ -21,7 +21,7 @@ public:
 	}
 	unsigned int VAO, VBO, EBO;
 	float radius = 0.1;
-	
+	float count = 0;
 	float h = 1.0f;
 	glm::vec3 position = glm::vec3(-0.8f, h, 0.0f);
 	glm::vec3 velocity = glm::vec3(0.0f,0.0f,0.0f);
@@ -75,7 +75,9 @@ public:
 	void draw(Shader shader,float deltaTime,std::vector<Wood> woods,Bin bin) {
 		if (out) return;
 		shader.use();
-		bin.checkIn(position);
+		if (bin.checkIn(position)) {
+			bounceInBin(bin);
+		}
 		t = deltaTime;
 		//std::cout << velocity.y  << std::endl;
 		position += velocity * deltaTime;
@@ -97,7 +99,8 @@ public:
 	void onWood(std::vector<Wood> wood) {
 		float angle = abs(glm::degrees(glm::atan(velocity.y / velocity.x)));
 		//if (angle == 90)angle = -90;
-		std::cout << angle << std::endl;
+		//std::cout << angle << std::endl;
+		//std::cout << stable << std::endl;
 		glm::vec3 velo = velocity;
 		bool c = false;
 		for (int i = 0; i < wood.size(); i++) {
@@ -116,21 +119,27 @@ public:
 
 				float angleWood = glm::degrees(glm::atan(slope));
 				if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < this->radius) {
+					count = 0;
 					c = true;
 					velo = velocity;
 					//std::cout << "angleWood " << angleWood << std::endl;
 					float size = 1;
+					
 					size = glm::distance(velo, glm::vec3(0.0f));
-					/*if (size > 0.5 && !stable)
-						velo = glm::vec3(0.5) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));*/
-					if (col != j) {
-						stable = false;
+					
+					if (size > 0.3 && !stable && abs(angle - abs(angleWood)) > 10) {
+						velo = glm::vec3(0.5) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
+						std::cout << angle << " " << angleWood << std::endl;
+					}
+					else if (col != j) {
+						
+						stable = true;
 						col = j;
 						//std::cout << "ss " << angle << " " << angleWood << 90 - angle - angleWood << std::endl;
 
 
 						//glm::normalize(velocity);
-						//glm::vec3 bounce = glm::vec3(0.1) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
+						//glm::vec3 bounce = glm::vec3(0.5) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
 						velo.x = copysign(1.0, velocity.x)*(size * glm::sin(glm::radians(90 - angle - angleWood))) * glm::cos(glm::radians(angleWood));
 						velo.y = copysign(1.0, velocity.x) * (size * glm::sin(glm::radians(90 - angle - angleWood))) * glm::sin(glm::radians(angleWood));
 						//std::cout << angle << " " << angleWood << " " << glm::sin(glm::radians(90 - angle - angleWood)) << std::endl;
@@ -162,10 +171,28 @@ public:
 				
 			}
 		}
-	
-		if (!c)
-		velocity.y += g * t;
+		
+		if (!c) {
+			count += t;
+			if (count > 0.5) stable = false;
+			velocity.y += g * t;
+		}
 	}
 
+	private:
+		void bounceInBin(Bin bin) {
+			if (position.x + radius >= bin.position.x + bin.size) {
+				position.x = bin.position.x + bin.size - radius;
+				velocity.x *= -1;
+			}
+			else if (position.x - radius <= bin.position.x - bin.size) {
+				position.x = bin.position.x - bin.size + radius;
+				velocity.x *= -1;
+			}
+			if (position.y - radius <= bin.position.y - bin.size) {
+				position.y = bin.position.y - bin.size + radius;
+				velocity.y = 0;
+			}
 
+		}
 };

@@ -152,6 +152,7 @@
     <ClInclude Include="header\BIn.h" />
     <ClInclude Include="header\camera.h" />
     <ClInclude Include="Header\Marble.h" />
+    <ClInclude Include="header\Menu.h" />
     <ClInclude Include="header\mesh.h" />
     <ClInclude Include="header\model.h" />
     <ClInclude Include="header\shader_m.h" />

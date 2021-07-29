@@ -27,10 +27,11 @@ public :
 	};
     Border border = Border();
     std::vector<int> idx;
-    float staticFrict = 0.5f;
+    float staticFrict = -0.2f;
     int last = 0;
     int x = 0;
-    
+    glm::vec3 color = glm::vec3(1.0f, 0.5f, 0.2f);
+    float thin = 4;
 	std::pair<glm::vec3, glm::vec3> pieces;
 	unsigned int VAO, VBO,EBO;
     std::vector<float> vertices;
@@ -104,6 +105,8 @@ public :
             last++;
         }
       
+        shader.use();
+        shader.setVec3("color", color);
         glBindVertexArray(this->VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
@@ -117,7 +120,7 @@ public :
         //last++;
 
         glBindVertexArray(this->VAO);
-        glLineWidth(1);
+        glLineWidth(thin);
         //glDrawArrays(GL_LINES, 0, vertices.size()/3 - 1);
         glDrawElements(GL_LINES, idx.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
@@ -145,6 +148,7 @@ public :
 
     void draw(Shader shader) {
         shader.use();
+        shader.setVec3("color",color);
         if (vertices.size() < 6) return;
         glBindVertexArray(this->VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -160,7 +164,7 @@ public :
         //std::cout << idx.size() << std::endl;
 
         glBindVertexArray(this->VAO);
-        glLineWidth(1);
+        glLineWidth(thin);
         //glDrawArrays(GL_LINES, 0, vertices.size()/3 - 1);
         glDrawElements(GL_LINES, idx.size()-1, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0); 

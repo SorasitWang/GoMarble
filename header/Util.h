@@ -27,7 +27,7 @@ v3 lineIntersection(v3 A, v3 B, v3 C, v3 D)
     {
         double x = (b2 * c1 - b1 * c2) / determinant;
         double y = (a1 * c2 - a2 * c1) / determinant;
-        if (std::min(A.x, B.x) <= x && x <= std::max(A.x, B.x))
+        if (std::min(A.x, B.x) < x && x < std::max(A.x, B.x))
             return v3(x, y, 0);
         else
             return v3(FLT_MAX);

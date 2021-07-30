@@ -88,7 +88,9 @@ public:
 		if (position.x > 1.0 || position.y > 1.0) out = true;
 		model = glm::translate(model, position);
 		shader.setMat4("model", model);
-
+		shader.setVec3("color",glm::vec3 (0.9,0.3,0.3));
+		shader.setVec3("center",position);
+		shader.setFloat("rad", this->radius);
 		glBindVertexArray(this->VAO);
 		glLineWidth(1);
 		glDrawElements(GL_TRIANGLES, 73 * 3, GL_UNSIGNED_INT, 0);

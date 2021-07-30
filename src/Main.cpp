@@ -15,6 +15,7 @@
 #include "../header/Wood.h"
 #include "../header/Marble.h"
 #include "../header/Bin.h"
+#include "../header/Menu.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow* window, float deltatIme, Shader boxShader);
@@ -81,10 +82,12 @@ int main()
     // build and compile our shader program
     // ------------------------------------
     Shader ourShader("./header/wood.vs", "./header/wood.fs"); // you can name your shader files however you like
-    Shader marbleShader("./header/marble.vs", "./header/wood.fs");
+    Shader marbleShader("./header/marble.vs", "./header/marble.fs");
+    Shader iconShader("./header/icon.vs", "./header/icon.fs");
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-
+    Menu menu = Menu();
+    menu.init(ourShader,iconShader);
     bin.init(marbleShader);
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
@@ -113,6 +116,7 @@ int main()
 
         // render the triangle
         bin.draw(marbleShader,deltaTime);
+        menu.draw(ourShader,iconShader);
        //w.draw(ourShader);
        for (auto &w : map)
            w.draw(ourShader);

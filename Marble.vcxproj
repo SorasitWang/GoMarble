@@ -162,10 +162,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.fs" />
+    <None Include="header\icon.fs" />
+    <None Include="header\icon.vs" />
+    <None Include="header\marble.fs" />
     <None Include="header\marble.vs" />
     <None Include="header\wood.fs" />
     <None Include="header\wood.vs" />
     <None Include="vertex.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\eraser.png" />
+    <Image Include="res\pencil.png" />
+    <Image Include="res\rocket.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

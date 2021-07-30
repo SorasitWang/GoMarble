@@ -82,5 +82,25 @@
     <None Include="header\marble.vs">
       <Filter>Header Files\Marble</Filter>
     </None>
+    <None Include="header\marble.fs">
+      <Filter>Header Files\Marble</Filter>
+    </None>
+    <None Include="header\icon.vs">
+      <Filter>Header Files\Menu</Filter>
+    </None>
+    <None Include="header\icon.fs">
+      <Filter>Header Files\Menu</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\eraser.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\pencil.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\rocket.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

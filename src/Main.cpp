@@ -35,14 +35,19 @@ float xPos, yPos;
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
-
-bool adding = false;
-Marble m = Marble();
-Bin bin = Bin();
-
 std::vector<Wood> map;
 glm::vec3 start, end;
 std::vector<Marble> marbles;
+
+float menuArea = 0.3;
+bool select = false;
+bool adding = false;
+Marble m = Marble();
+Bin bin = Bin();
+Menu menu = Menu(menuArea);
+
+Operation mode = NONE;
+
 int main()
 {
     // glfw: initialize and configure
@@ -82,13 +87,14 @@ int main()
     // build and compile our shader program
     // ------------------------------------
     Shader ourShader("./header/wood.vs", "./header/wood.fs"); // you can name your shader files however you like
+    Shader normalLine("./header/bin.vs", "./header/bin.fs");
     Shader marbleShader("./header/marble.vs", "./header/marble.fs");
     Shader iconShader("./header/icon.vs", "./header/icon.fs");
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    Menu menu = Menu();
-    menu.init(ourShader,iconShader);
-    bin.init(marbleShader);
+   
+    menu.init(normalLine,iconShader);
+    bin.init(normalLine);
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     // glBindVertexArray(0);
@@ -115,11 +121,11 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render the triangle
-        bin.draw(marbleShader,deltaTime);
-        menu.draw(ourShader,iconShader);
+        bin.draw(normalLine,deltaTime);
+        menu.draw(normalLine,iconShader);
        //w.draw(ourShader);
        for (auto &w : map)
-           w.draw(ourShader);
+           w.draw(ourShader,normalLine);
        for (auto &mm : marbles) {
            //std::cout << mm.position.y << std::endl;
            mm.draw(marbleShader, deltaTime, map,bin);
@@ -172,13 +178,23 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
     Shader shader = Shader("./header/wood.vs", "./header/wood.fs");
+    Shader normalLine("./header/bin.vs", "./header/bin.fs");
     lastX = xpos;
     lastY = ypos;
-    if (adding == true) {
-   
-        end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
-        //std::cout << end.x << std::endl;
-        map[map.size() - 1].draw(shader, end);
+    if (2 * xPos / SCR_WIDTH - 1 > -(1 - menuArea)) {
+        if (!select) return;
+        if (adding == true) {
+            end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
+            if (mode == DRAW) {
+              map[map.size() - 1].draw(shader,normalLine, end);
+            }
+            else if (mode == ERASE) {
+                for (auto &w : map) {
+                    w.candidate(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
+                }
+            }
+        }
+
     }
    
    
@@ -187,32 +203,55 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    Shader shader = Shader("./header/wood.vs", "./header/wood.fs");
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+   
+    if (2 * xPos / SCR_WIDTH - 1 > -(1 - menuArea)) {
+        Shader shader = Shader("./header/wood.vs", "./header/wood.fs");
+        Shader normalLine("./header/bin.vs", "./header/bin.fs");
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             start = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
-            if (adding == false) {
+            if (select && !adding) {
                 //std::cout << "first" << std::endl;
                 adding = true;
-                map.push_back(Wood());
-                map[map.size()-1].init(shader, start);
+                if (mode == DRAW) {
+                    map.push_back(Wood());
+                    map[map.size() - 1].init(shader, normalLine, start);
+                }
             }
+
+
+        }
+
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE  && adding) {
+            adding = false;
+            
+            end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
+            if (mode==DRAW)
+                map[map.size() - 1].draw(shader,normalLine, end);
+            if (mode == ERASE) {
+                for (auto& w : map) {
+                    w.erase();
+                }
+            }
+            //std::cout << map[map.size() - 1].vertices.size() << " " << map[map.size() - 1].idx.size() << std::endl;
+
+        }
+
+        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+            select = false;
            
-         
+                Shader marbleShader("./header/marble.vs", "./header/marble.fs");
+                marbles.push_back(Marble());
+                marbles[marbles.size() - 1].init(marbleShader, glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f));
+                //marbles[marbles.size() - 1].draw(marbleShader, deltaTime, map, bin);
+            
+            }
     }
 
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-        adding = false;
-        end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
-        
-        map[map.size() - 1].draw(shader,end);
-        //std::cout << map[map.size() - 1].vertices.size() << " " << map[map.size() - 1].idx.size() << std::endl;
-      
-    }
-
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
-        Shader marbleShader("./header/marble.vs", "./header/wood.fs");
-        marbles.push_back(Marble());
-        marbles[marbles.size()-1].init(marbleShader, glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f));
-        marbles[marbles.size() - 1].draw(marbleShader, deltaTime, map,bin);
+    else {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            select = true;
+            adding = false;
+            mode = menu.select(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
+        }
     }
 }

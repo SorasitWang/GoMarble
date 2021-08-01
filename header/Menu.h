@@ -1,4 +1,6 @@
 #pragma once
+#ifndef _UTIL_H
+#define _UTIL_H
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,15 +14,23 @@
 #include "../header/stb_image.h"
 #include "../header/camera.h"
 
+
+enum Operation {
+	NONE,
+	DRAW,
+	ERASE,
+	ADD
+};
 class Menu {
 public:
-	Menu() {
-
+	Menu(float s) {
+		width = s;
 	}
 	unsigned int VAO, VBO , iconVAO , iconVBO , iconEBO;
 	float width = 0.3;
 	glm::vec3 borderColor = glm::vec3(0.8, 0.0, 0.2);
 	unsigned int texturePencil, textureEraser, textureBoost;
+	Operation op = NONE;
 
 	void init(Shader shader,Shader iconShader) {
 		float v[] = {
@@ -197,6 +207,28 @@ public:
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	}
 
-
+	Operation select(float x, float y) {
+		if (y >= -0.15 && y <= 0.15) op = ADD;
+		else if (y >= 0.25 && y <= 0.55) op = ERASE;
+		else if (y >= 0.65 && y <= 0.95) op = DRAW;
+		else op = NONE;
+		switch (op)
+		{
+		case DRAW:
+			std::cout << "draw" << std::endl;
+			break;
+		case ERASE:
+			std::cout << "erase" << std::endl;
+			break;
+		case ADD:
+			std::cout << "add" << std::endl;
+			break;
+		default:
+			break;
+		}
+		return op;
+	}
 
 };
+
+#endif

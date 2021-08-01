@@ -52,7 +52,7 @@ public:
 			idx += 3;
 		}
 		
-		shader.use();
+		//shader.use();
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
 		glGenBuffers(1, &EBO);
@@ -69,6 +69,7 @@ public:
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+		glBindVertexArray(0);
 
 	}
 
@@ -111,14 +112,14 @@ public:
 				&& position.y <= wood[i].border.maxY+radius && position.y >= wood[i].border.minY)) {
 				continue;
 			}
-			for (int j = 0; j < wood[i].vertices.size() - 3; j += 3) {
+			for (int j = 0; j < wood[i].vertices.size() - 4; j += 4) {
 
-				float slope = (wood[i].vertices[j + 1] - wood[i].vertices[j + 4]) / (wood[i].vertices[j] - wood[i].vertices[j + 3]);
+				float slope = (wood[i].vertices[j + 1] - wood[i].vertices[j + 5]) / (wood[i].vertices[j] - wood[i].vertices[j + 4]);
 				glm::vec3 tmp = glm::vec3(position.x + 1.0f, position.y + (-1 / slope), position.z);
 				glm::vec3 start = glm::vec3(wood[i].vertices[j], wood[i].vertices[j + 1], wood[i].vertices[j + 2]);
-				glm::vec3 end = glm::vec3(wood[i].vertices[j + 3], wood[i].vertices[j + 4], wood[i].vertices[j + 5]);
+				glm::vec3 end = glm::vec3(wood[i].vertices[j + 4], wood[i].vertices[j + 5], wood[i].vertices[j + 6]);
 				auto re = lineIntersection(start, end, this->position, tmp);
-
+				if (wood[i].vertices[j + 3] == 0 && wood[i].vertices[j + 7] == 0) continue;
 				float angleWood = glm::degrees(glm::atan(slope));
 				if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < this->radius) {
 					count = 0;

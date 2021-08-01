@@ -162,6 +162,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.fs" />
+    <None Include="header\bin.fs" />
+    <None Include="header\bin.vs" />
     <None Include="header\icon.fs" />
     <None Include="header\icon.vs" />
     <None Include="header\marble.fs" />

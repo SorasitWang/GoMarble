@@ -1,3 +1,7 @@
+#ifndef UTIL_H    // To make sure you don't declare the function more than once by including the header multiple times.
+#define UTIL_H
+
+
 #include <iostream>
 typedef glm::vec3 v3;
 
@@ -33,3 +37,4 @@ v3 lineIntersection(v3 A, v3 B, v3 C, v3 D)
             return v3(FLT_MAX);
     }
 }
+#endif

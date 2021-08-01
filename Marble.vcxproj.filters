@@ -91,6 +91,12 @@
     <None Include="header\icon.fs">
       <Filter>Header Files\Menu</Filter>
     </None>
+    <None Include="header\bin.fs">
+      <Filter>Header Files\Bin</Filter>
+    </None>
+    <None Include="header\bin.vs">
+      <Filter>Header Files\Bin</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\eraser.png">

@@ -42,6 +42,7 @@ public :
     std::vector<float> highlight;
     std::vector<int> hIdx;
     float smoothnes = 0.5;
+    float length = 0.0f;
     
 	void init(Shader shader,Shader hShader,glm::vec3 start) {
        
@@ -108,7 +109,7 @@ public :
 	}
 
     
-	void draw(Shader shader,Shader hShader,glm::vec3 end) {
+    float draw(Shader shader, Shader hShader, glm::vec3 end, float leftLength) {
         
         //vv[x] = end.x; vv[x + 1] = end.y; vv[x + 2] = end.z;
         //x += 3;
@@ -124,14 +125,25 @@ public :
             if (end.y > border.maxY) border.maxY = end.y;
             if (end.x < border.minX) border.minX = end.x;
             if (end.y < border.minY) border.minY = end.y;
-            this->vertices.push_back(vertices[vertices.size()-4]); this->vertices.push_back(vertices[vertices.size() - 4]); this->vertices.push_back(0.0f);
-            vertices.push_back(1);
-            this->vertices.push_back(end.x); this->vertices.push_back(end.y); this->vertices.push_back(0.0f);
-            vertices.push_back(1);
-            //x += 3;
-            idx.push_back(last); idx.push_back(last + 1);
-            last+=2;
+
+            float tmp = glm::distance(glm::vec3(vertices[vertices.size() - 4], vertices[vertices.size() - 3], 0.0f), end);
+            std::cout << tmp << std::endl;
+            if (tmp <= leftLength) {
+                length += tmp;
+                leftLength -= tmp;
+                this->vertices.push_back(vertices[vertices.size() - 4]); this->vertices.push_back(vertices[vertices.size() - 4]); this->vertices.push_back(0.0f);
+
+                vertices.push_back(1);
+                this->vertices.push_back(end.x); this->vertices.push_back(end.y); this->vertices.push_back(0.0f);
+
+                vertices.push_back(1);
+                //x += 3;
+                idx.push_back(last); idx.push_back(last + 1);
+                last += 2;
+            }
+            
         }
+        return leftLength;
       
 	}
 

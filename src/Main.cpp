@@ -48,6 +48,9 @@ Menu menu = Menu(menuArea);
 
 Operation mode = NONE;
 
+float woodLength = 1.0f;
+float countWoodLength = 5.0f;
+
 int main()
 {
     // glfw: initialize and configure
@@ -186,7 +189,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
         if (adding == true) {
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             if (mode == DRAW) {
-              map[map.size() - 1].draw(shader,normalLine, end);
+              countWoodLength = map[map.size() - 1].draw(shader,normalLine, end,countWoodLength);
+              //std::cout << countWoodLength << std::endl;
             }
             else if (mode == ERASE) {
                 for (auto &w : map) {
@@ -225,8 +229,10 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             adding = false;
             
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
-            if (mode==DRAW)
-                map[map.size() - 1].draw(shader,normalLine, end);
+            if (mode == DRAW) {
+                //countWoodLength= map[map.size() - 1].draw(shader, normalLine, end,countWoodLength);
+                //countWoodLength += map[map.size() - 1].length;
+            }
             if (mode == ERASE) {
                 for (auto& w : map) {
                     w.erase();

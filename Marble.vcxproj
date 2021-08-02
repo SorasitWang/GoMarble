@@ -125,7 +125,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freetype.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -168,6 +168,8 @@
     <None Include="header\icon.vs" />
     <None Include="header\marble.fs" />
     <None Include="header\marble.vs" />
+    <None Include="header\text.fs" />
+    <None Include="header\text.vs" />
     <None Include="header\wood.fs" />
     <None Include="header\wood.vs" />
     <None Include="vertex.vs" />

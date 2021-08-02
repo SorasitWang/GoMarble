@@ -41,7 +41,7 @@ public :
     unsigned int hVAO, hVBO, hEBO;
     std::vector<float> highlight;
     std::vector<int> hIdx;
-    float smoothnes = 0.5;
+    float smoothnes = 0.1;
     float length = 0.0f;
     
 	void init(Shader shader,Shader hShader,glm::vec3 start) {
@@ -127,7 +127,7 @@ public :
             if (end.y < border.minY) border.minY = end.y;
 
             float tmp = glm::distance(glm::vec3(vertices[vertices.size() - 4], vertices[vertices.size() - 3], 0.0f), end);
-            std::cout << tmp << std::endl;
+            //std::cout << tmp << std::endl;
             if (tmp <= leftLength) {
                 length += tmp;
                 leftLength -= tmp;
@@ -150,6 +150,8 @@ public :
     void draw(Shader shader,Shader hShader) {
         shader.use();
         shader.setVec3("color",color);
+        glm::mat4 model = glm::mat4(1.0f);
+        shader.setMat4("model", model);
         if (vertices.size() < 6) return;
         glBindVertexArray(this->VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -168,57 +170,64 @@ public :
         glBindVertexArray(this->VAO);
         glLineWidth(thin);
         //glDrawArrays(GL_LINES, 0, vertices.size()/3 - 1);
-        glDrawElements(GL_LINES, idx.size()-1, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_LINES, idx.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0); 
 
-        if (highlight.size() != 0) {
+        /*if (highlight.size() != 0) {
             shader.use();
+            model = glm::mat4(1.0f);
+            model = glm::scale(model, glm::vec3(2.0));
+            shader.setMat4("model", model);
             //shader.setVec3("color", glm::vec3(0.3, 0.8, 0.3));
 
-            glBindVertexArray(VAO);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBindVertexArray(hVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, hVBO);
 
             //int iix[2] = { 0,20 };
             //int x = 5;
             //std::cout << highlight.size() << std::endl;
-            /*glBufferData(GL_ARRAY_BUFFER, 4 * highlight.size(), &highlight[0], GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hEBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * hIdx.size(), &hIdx[0], GL_STATIC_DRAW);*/
+            
             glBufferData(GL_ARRAY_BUFFER, 4 * vertices.size(), &vertices[0], GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hEBO);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * idx.size(), &idx[0], GL_STATIC_DRAW);
 
-            glBindVertexArray(VAO);
-            glLineWidth(1.5 * thin);
+            glBindVertexArray(hVAO);
+            glLineWidth(10);
            // glDrawArrays(GL_LINES, 0, hIdx.size() - 1);
             glDrawElements(GL_LINES, idx.size()-1, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
-        }
+        }*/
 
     }
 
     void candidate(float x,float y) {
         int tmp = checkPiece(glm::vec3(x, y, 0));
         if (tmp == -1) return;
-        if (vertices[tmp + 3] == 0.5 && vertices[tmp + 7] == 0.5) return;
+        if (vertices[tmp + 3] != 1 && vertices[tmp + 7] != 1) return;
         /*if (vertices[tmp + 3] == 0.5 && vertices[tmp + 7] == 0.5) {
             vertices[tmp + 3] = 1; vertices[tmp + 7] = 1;
         }*/
         else {
             vertices[tmp + 3] = 0.5; vertices[tmp + 7] = 0.5;
         }
-        std::cout << "1 " <<vertices[tmp] << " " << vertices[tmp + 1] << " " << vertices[tmp + 2] << std::endl;
-        std::cout << "2 " << vertices[tmp+4] << " " << vertices[tmp + 5] << " " << vertices[tmp + 6] << std::endl;
+        //std::cout << "1 " <<vertices[tmp] << " " << vertices[tmp + 1] << " " << vertices[tmp + 2] << std::endl;
+        //std::cout << "2 " << vertices[tmp+4] << " " << vertices[tmp + 5] << " " << vertices[tmp + 6] << std::endl;
         //hghlight.push_back(vertices[tmp]);  highlight.push_back(vertices[tmp+1]);  highlight.push_back(vertices[tmp+2]);
         //highlight.push_back(vertices[tmp+4]);  highlight.push_back(vertices[tmp + 5]);  highlight.push_back(vertices[tmp + 6]);
         hIdx.push_back(colLast); hIdx.push_back(colLast + 1);
         colLast++;
     }
 
-    void erase() {
-        for (int i = 3; i < vertices.size(); i += 4) {
-            if (vertices[i] == 0.5) vertices[i] = 0;
+    void erase(float &woodLength) {
+        for (int i = 3; i < vertices.size()-4; i += 4) {
+            if (vertices[i] == 0.5) {
+                vertices[i] = 0;
+                vertices[i + 4] = 0;
+                woodLength += glm::distance(glm::vec3(vertices[i-3], vertices[i-2], vertices[i-1])
+                                ,glm::vec3(vertices[i+1], vertices[i + 2], vertices[i + 3]));
+            }
        }
+        
     }
 
     private:
@@ -233,7 +242,7 @@ public :
                 auto re = lineIntersection(start, end, position, tmp);
 
                 float angleWood = glm::degrees(glm::atan(slope));
-                if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < 0.01) {
+                if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < 0.05) {
                     //std::cout << j << std::endl;
                     return j;
                 }

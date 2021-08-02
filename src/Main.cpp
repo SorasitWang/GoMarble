@@ -93,10 +93,11 @@ int main()
     Shader normalLine("./header/bin.vs", "./header/bin.fs");
     Shader marbleShader("./header/marble.vs", "./header/marble.fs");
     Shader iconShader("./header/icon.vs", "./header/icon.fs");
+    Shader textShader("./header/text.vs", "./header/text.fs");
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
    
-    menu.init(normalLine,iconShader);
+    menu.init(normalLine,iconShader,textShader);
     bin.init(normalLine);
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
@@ -106,7 +107,8 @@ int main()
     //m.init(marbleShader, glm::vec3(0.0f));
     //marbles.push_back(m);
     
-
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -125,7 +127,7 @@ int main()
 
         // render the triangle
         bin.draw(normalLine,deltaTime);
-        menu.draw(normalLine,iconShader);
+        menu.draw(normalLine,iconShader,textShader,countWoodLength);
        //w.draw(ourShader);
        for (auto &w : map)
            w.draw(ourShader,normalLine);
@@ -190,7 +192,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             if (mode == DRAW) {
               countWoodLength = map[map.size() - 1].draw(shader,normalLine, end,countWoodLength);
-              //std::cout << countWoodLength << std::endl;
+              std::cout << countWoodLength << std::endl;
             }
             else if (mode == ERASE) {
                 for (auto &w : map) {
@@ -235,7 +237,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             }
             if (mode == ERASE) {
                 for (auto& w : map) {
-                    w.erase();
+                    w.erase(countWoodLength);
                 }
             }
             //std::cout << map[map.size() - 1].vertices.size() << " " << map[map.size() - 1].idx.size() << std::endl;

@@ -43,11 +43,13 @@ public:
 	glm::vec3 borderColor = glm::vec3(0.8, 0.0, 0.2);
 	unsigned int texturePencil, textureEraser, textureBoost;
 	Operation op = NONE;
+	std::map<Operation, float> iconPop;
 	FT_Library ft;
 	FT_Face face;
 	unsigned int textVAO, textVBO;
 
 	void init(Shader shader,Shader iconShader,Shader textShader) {
+		iconPop[ADD] = 0.3; iconPop[ERASE] = 0.3; iconPop[DRAW] = 0.3;
 		float v[] = {
 			-(1 - width),-1.0f,0.0f,
 			-(1 - width),1.0f,0.0f,
@@ -116,7 +118,7 @@ public:
 		unsigned char* data = stbi_load("C:\\Users\\LEGION\\source\\repos\\Marble\\res\\pencil.png", &width, &height, &nrChannels, 0);
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
 				GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
@@ -135,10 +137,11 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// load and generate the texture
 
-		unsigned char* data2 = stbi_load("C:\\Users\\LEGION\\source\\repos\\Marble\\res\\eraser.png", &width, &height, &nrChannels, 0);
+		unsigned char* data2 = stbi_load("C:\\Users\\LEGION\\source\\repos\\Marble\\res\\eraser1.png", &width, &height, &nrChannels, 0);
 		if (data2)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+			//std::cout << nrChannels << std::endl;
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
 				GL_UNSIGNED_BYTE, data2);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
@@ -156,10 +159,11 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// load and generate the texture
 
-		unsigned char* data3 = stbi_load("C:\\Users\\LEGION\\source\\repos\\Marble\\res\\rocket.jpg", &width, &height, &nrChannels, 0);
+		unsigned char* data3 = stbi_load("C:\\Users\\LEGION\\source\\repos\\Marble\\res\\rocket.png", &width, &height, &nrChannels, 0);
 		if (data3)
 		{
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+			
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
 				GL_UNSIGNED_BYTE, data3);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		}
@@ -240,7 +244,7 @@ public:
 		
 	}
 
-	void draw(Shader areaShader,Shader textureShader,Shader textShader,float length) {
+	void draw(Shader areaShader,Shader textureShader,Shader textShader,float length,float x,float y) {
 		areaShader.use();
 		areaShader.setVec3("color", borderColor);
 		glBindVertexArray(this->VAO);
@@ -251,7 +255,7 @@ public:
 		textureShader.use();
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-0.85, 0.8, 0));
-		model = glm::scale(model, glm::vec3(0.3f));
+		model = glm::scale(model, glm::vec3(iconPop[DRAW]));
 		
 		textureShader.setMat4("model", model);
 		glBindTexture(GL_TEXTURE_2D, texturePencil);
@@ -264,7 +268,7 @@ public:
 
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-0.85, 0.4, 0));
-		model = glm::scale(model, glm::vec3(0.3f));
+		model = glm::scale(model, glm::vec3(iconPop[ERASE]));
 		
 		textureShader.setMat4("model", model);
 		glBindTexture(GL_TEXTURE_2D, textureEraser);
@@ -278,7 +282,7 @@ public:
 
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-0.85, 0, 0));
-		model = glm::scale(model, glm::vec3(0.3f));
+		model = glm::scale(model, glm::vec3(iconPop[ADD]));
 
 		textureShader.setMat4("model", model);
 		glBindTexture(GL_TEXTURE_2D, textureBoost);
@@ -288,30 +292,55 @@ public:
 		glBindTexture(GL_TEXTURE_2D, textureBoost);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		textShader.use();
+		unsigned int mouseShader;
+		if (op != NONE) {
+			model = glm::mat4(1.0f);
+			model = glm::translate(model,glm::vec3(x,y,0.0f));
+			model = glm::scale(model, glm::vec3(0.3f));
+			textureShader.setMat4("model", model);
+			switch (op) {
+			case ADD:
+				glBindTexture(GL_TEXTURE_2D, textureBoost);
+				textureShader.setInt("texture1", 0);
+				//model = 
+				glBindVertexArray(iconVAO);
+				glBindTexture(GL_TEXTURE_2D, textureBoost);
+				break;
+			case ERASE:
+				glBindTexture(GL_TEXTURE_2D, textureEraser);
+				textureShader.setInt("texture1", 0);
+				//model = 
+				glBindVertexArray(iconVAO);
+				glBindTexture(GL_TEXTURE_2D, textureEraser);
+				break;
+			case DRAW:
+				glBindTexture(GL_TEXTURE_2D, texturePencil);
+				textureShader.setInt("texture1", 0);
+				//model = 
+				glBindVertexArray(iconVAO);
+				glBindTexture(GL_TEXTURE_2D, texturePencil);
+				break;
+			}
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+		}
+		
 		RenderText(textShader, "Avaliable length : "+ std::to_string(length), 25.0f, 25.0f, 1.0f,
 			glm::vec3(0.5, 0.8f, 0.2f));
 	}
 
-	Operation select(float x, float y) {
+	Operation select(float x, float y,bool click) {
+		Operation tmp = op;
 		if (y >= -0.15 && y <= 0.15) op = ADD;
 		else if (y >= 0.25 && y <= 0.55) op = ERASE;
 		else if (y >= 0.65 && y <= 0.95) op = DRAW;
 		else op = NONE;
-		switch (op)
-		{
-		case DRAW:
-			std::cout << "draw" << std::endl;
-			break;
-		case ERASE:
-			std::cout << "erase" << std::endl;
-			break;
-		case ADD:
-			std::cout << "add" << std::endl;
-			break;
-		default:
-			break;
-		}
+		
+		iconPop[DRAW] = 0.3; iconPop[ERASE] = 0.3; iconPop[ADD] = 0.3;
+		if (op != NONE) 
+			iconPop[op] = 0.4;
+		if (!click) op = tmp;
 		return op;
 	}
 	private:
@@ -319,7 +348,7 @@ public:
 			glm::vec3 color)
 			
 		{
-			std::cout << std::endl;
+			//std::cout << std::endl;
 			// activate corresponding render state
 			s.use();
 			glUniform3f(glGetUniformLocation(s.ID, "textColor"),
@@ -330,7 +359,7 @@ public:
 			std::string::const_iterator c;
 			for (c = text.begin(); c != text.end(); c++)
 			{
-				std::cout << *c;
+				//std::cout << *c;
 				Character ch = Characters[*c];
 				float xpos = x + ch.Bearing.x * scale;
 				float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;

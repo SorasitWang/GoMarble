@@ -127,7 +127,7 @@ int main()
 
         // render the triangle
         bin.draw(normalLine,deltaTime);
-        menu.draw(normalLine,iconShader,textShader,countWoodLength);
+        menu.draw(normalLine,iconShader,textShader,countWoodLength, 2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
        //w.draw(ourShader);
        for (auto &w : map)
            w.draw(ourShader,normalLine);
@@ -186,7 +186,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     Shader normalLine("./header/bin.vs", "./header/bin.fs");
     lastX = xpos;
     lastY = ypos;
+   
     if (2 * xPos / SCR_WIDTH - 1 > -(1 - menuArea)) {
+        
         if (!select) return;
         if (adding == true) {
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
@@ -202,6 +204,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
         }
 
     }
+    else menu.select(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), false);
    
    
    // cam.ProcessMouseMovement(xoffset, yoffset);
@@ -259,7 +262,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             select = true;
             adding = false;
-            mode = menu.select(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
+            mode = menu.select(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5),true);
         }
     }
 }

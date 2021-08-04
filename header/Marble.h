@@ -12,14 +12,16 @@
 #include "../header/stb_image.h"
 #include "../header/camera.h"
 #include "../header/bin.h"
+#include "../header/Booster.h"
 #include <iostream>
+#include "../header/Wood.h"
 #include "Util.h"
 class Marble {
 public:
 	Marble() {
 
 	}
-	unsigned int VAO, VBO, EBO;
+	unsigned int VAO, VBO, EBO,texture;
 	float radius = 0.1;
 	float count = 0;
 	float h = 1.0f;
@@ -38,12 +40,16 @@ public:
 
 	void init(Shader shader,glm::vec3 startPos) {
 		position = startPos;
-		float vertices[360 / 5 * 3 + 3];
-		int indx[73 * 3], idx = 3;
-		vertices[0] = 0.0f; vertices[1] = 0.0f; vertices[2] = 0.0f;
+		float vertices[360 / 5 * 5 + 5];
+		int indx[73 * 3], idx = 5;
+		vertices[0] = 0.0f; vertices[1] = 0.0f; vertices[2] = 0.0f; vertices[3] = 0.5f; vertices[4] = 0.5f;
 		for (int i = 0; i < 360; i += 5) {
-			vertices[idx] = radius * glm::cos(glm::radians((float)i)); vertices[idx + 1] = radius * glm::sin(glm::radians((float)i)); vertices[idx + 2] = 0.0f;
-			idx += 3;
+			vertices[idx] = radius * glm::cos(glm::radians((float)i));
+			vertices[idx + 1] = radius * glm::sin(glm::radians((float)i));
+			vertices[idx + 2] = 0.0f;
+			vertices[idx + 3] = (glm::cos(glm::radians((float)i))+1)/2 ;
+			vertices[idx + 4] = (glm::sin(glm::radians((float)i))+1)/2 ;
+			idx += 5;
 		}
 		idx = 0;
 		
@@ -52,7 +58,28 @@ public:
 			idx += 3;
 		}
 		
-		//shader.use();
+		shader.use();
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		// set the texture wrapping/filtering options (on currently bound texture)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// load and generate the texture
+		int width, height, nrChannels;
+		unsigned char* data = stbi_load("C:\\Users\\LEGION\\source\\repos\\Marble\\res\\marble.png", &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
+		shader.setInt("texture1", 0);
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
 		glGenBuffers(1, &EBO);
@@ -67,13 +94,16 @@ public:
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indx), indx, GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
 		glBindVertexArray(0);
+		
 
 	}
 
-	void draw(Shader shader,float deltaTime,std::vector<Wood> woods,Bin bin) {
+	void draw(Shader shader,float deltaTime,std::vector<Wood> woods,Bin bin,Booster &boosters) {
 		if (out) return;
 		shader.use();
 		if (bin.checkIn(position)) {
@@ -83,7 +113,7 @@ public:
 		//std::cout << velocity.y  << std::endl;
 		position += velocity * deltaTime;
 		glm::mat4 model = glm::mat4(1.0f);
-
+		boost(boosters);
 		onWood(woods);
 		//std::cout << position.y << std::endl;
 		if (position.x > 1.0 || position.y > 1.0) out = true;
@@ -94,6 +124,7 @@ public:
 		shader.setFloat("rad", this->radius);
 		glBindVertexArray(this->VAO);
 		glLineWidth(1);
+		glBindTexture(GL_TEXTURE_2D, texture);
 		glDrawElements(GL_TRIANGLES, 73 * 3, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
@@ -195,6 +226,12 @@ public:
 			if (position.y - radius <= bin.position.y - bin.size) {
 				position.y = bin.position.y - bin.size + radius;
 				velocity.y = 0;
+			}
+
+		}
+		void boost(Booster &boosters) {
+			if (boosters.isCol(this->position,radius)) {
+				this->velocity *= glm::vec3(boosters.magnitude);
 			}
 
 		}

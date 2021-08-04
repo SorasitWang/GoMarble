@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -210,10 +210,6 @@ public :
         else {
             vertices[tmp + 3] = 0.5; vertices[tmp + 7] = 0.5;
         }
-        //std::cout << "1 " <<vertices[tmp] << " " << vertices[tmp + 1] << " " << vertices[tmp + 2] << std::endl;
-        //std::cout << "2 " << vertices[tmp+4] << " " << vertices[tmp + 5] << " " << vertices[tmp + 6] << std::endl;
-        //hghlight.push_back(vertices[tmp]);  highlight.push_back(vertices[tmp+1]);  highlight.push_back(vertices[tmp+2]);
-        //highlight.push_back(vertices[tmp+4]);  highlight.push_back(vertices[tmp + 5]);  highlight.push_back(vertices[tmp + 6]);
         hIdx.push_back(colLast); hIdx.push_back(colLast + 1);
         colLast++;
     }

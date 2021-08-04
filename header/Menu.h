@@ -21,7 +21,8 @@ enum Operation {
 	NONE,
 	DRAW,
 	ERASE,
-	ADD
+	ADD,
+	MARBLE
 };
 struct Character {
 	unsigned int TextureID; // ID handle of the glyph texture
@@ -41,7 +42,7 @@ public:
 	unsigned int VAO, VBO , iconVAO , iconVBO , iconEBO;
 	float width = 0.3;
 	glm::vec3 borderColor = glm::vec3(0.8, 0.0, 0.2);
-	unsigned int texturePencil, textureEraser, textureBoost;
+	unsigned int texturePencil, textureEraser, textureBoost , textureMarble;
 	Operation op = NONE;
 	std::map<Operation, float> iconPop;
 	FT_Library ft;
@@ -49,7 +50,7 @@ public:
 	unsigned int textVAO, textVBO;
 
 	void init(Shader shader,Shader iconShader,Shader textShader) {
-		iconPop[ADD] = 0.3; iconPop[ERASE] = 0.3; iconPop[DRAW] = 0.3;
+		iconPop[ADD] = 0.3; iconPop[ERASE] = 0.3; iconPop[DRAW] = 0.3;; iconPop[MARBLE] = 0.3;
 		float v[] = {
 			-(1 - width),-1.0f,0.0f,
 			-(1 - width),1.0f,0.0f,
@@ -171,9 +172,28 @@ public:
 		{
 			std::cout << "Failed to load texture" << std::endl;
 		}
-		//iconShader.use();
-		//iconShader.setInt("texture1", 0);
+		
+		glGenTextures(1, &textureMarble);
+		glBindTexture(GL_TEXTURE_2D, textureMarble);
+		// set the texture wrapping/filtering options (on currently bound texture)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// load and generate the texture
 
+		unsigned char* data4 = stbi_load("C:\\Users\\LEGION\\source\\repos\\Marble\\res\\marble.png", &width, &height, &nrChannels, 0);
+		if (data4)
+		{
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+				GL_UNSIGNED_BYTE, data4);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
 		
 		if (FT_Init_FreeType(&ft))
 			std::cout << "ERROR::FREETYPE: Could not init FreeType Library" <<
@@ -278,8 +298,6 @@ public:
 		glBindTexture(GL_TEXTURE_2D, textureEraser);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-0.85, 0, 0));
 		model = glm::scale(model, glm::vec3(iconPop[ADD]));
@@ -292,6 +310,18 @@ public:
 		glBindTexture(GL_TEXTURE_2D, textureBoost);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-0.85, -0.4, 0));
+		model = glm::scale(model, glm::vec3(iconPop[MARBLE]));
+
+		textureShader.setMat4("model", model);
+		glBindTexture(GL_TEXTURE_2D, textureMarble);
+		textureShader.setInt("texture1", 0);
+		//model = 
+		glBindVertexArray(iconVAO);
+		glBindTexture(GL_TEXTURE_2D, textureMarble);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 		unsigned int mouseShader;
 		if (op != NONE) {
 			model = glm::mat4(1.0f);
@@ -302,23 +332,26 @@ public:
 			case ADD:
 				glBindTexture(GL_TEXTURE_2D, textureBoost);
 				textureShader.setInt("texture1", 0);
-				//model = 
 				glBindVertexArray(iconVAO);
 				glBindTexture(GL_TEXTURE_2D, textureBoost);
 				break;
 			case ERASE:
 				glBindTexture(GL_TEXTURE_2D, textureEraser);
 				textureShader.setInt("texture1", 0);
-				//model = 
 				glBindVertexArray(iconVAO);
 				glBindTexture(GL_TEXTURE_2D, textureEraser);
 				break;
 			case DRAW:
 				glBindTexture(GL_TEXTURE_2D, texturePencil);
 				textureShader.setInt("texture1", 0);
-				//model = 
 				glBindVertexArray(iconVAO);
 				glBindTexture(GL_TEXTURE_2D, texturePencil);
+				break;
+			case MARBLE:
+				glBindTexture(GL_TEXTURE_2D, textureMarble);
+				textureShader.setInt("texture1", 0);
+				glBindVertexArray(iconVAO);
+				glBindTexture(GL_TEXTURE_2D, textureMarble);
 				break;
 			}
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -335,9 +368,10 @@ public:
 		if (y >= -0.15 && y <= 0.15) op = ADD;
 		else if (y >= 0.25 && y <= 0.55) op = ERASE;
 		else if (y >= 0.65 && y <= 0.95) op = DRAW;
+		else if (y >= -0.55 && y <= -0.25) op = MARBLE;
 		else op = NONE;
 		
-		iconPop[DRAW] = 0.3; iconPop[ERASE] = 0.3; iconPop[ADD] = 0.3;
+		iconPop[DRAW] = 0.3; iconPop[ERASE] = 0.3; iconPop[ADD] = 0.3; iconPop[MARBLE] = 0.3;
 		if (op != NONE) 
 			iconPop[op] = 0.4;
 		if (!click) op = tmp;

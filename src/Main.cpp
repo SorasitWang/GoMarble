@@ -45,7 +45,7 @@ bool adding = false;
 Marble m = Marble();
 Bin bin = Bin();
 Menu menu = Menu(menuArea);
-
+Booster booster = Booster();
 Operation mode = NONE;
 
 float woodLength = 1.0f;
@@ -91,7 +91,7 @@ int main()
     // ------------------------------------
     Shader ourShader("./header/wood.vs", "./header/wood.fs"); // you can name your shader files however you like
     Shader normalLine("./header/bin.vs", "./header/bin.fs");
-    Shader marbleShader("./header/marble.vs", "./header/marble.fs");
+    Shader marbleShader("./header/icon.vs", "./header/icon.fs");
     Shader iconShader("./header/icon.vs", "./header/icon.fs");
     Shader textShader("./header/text.vs", "./header/text.fs");
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -99,6 +99,7 @@ int main()
    
     menu.init(normalLine,iconShader,textShader);
     bin.init(normalLine);
+    booster.init(iconShader);
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     // glBindVertexArray(0);
@@ -126,6 +127,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render the triangle
+        booster.draw(iconShader);
         bin.draw(normalLine,deltaTime);
         menu.draw(normalLine,iconShader,textShader,countWoodLength, 2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
        //w.draw(ourShader);
@@ -133,7 +135,7 @@ int main()
            w.draw(ourShader,normalLine);
        for (auto &mm : marbles) {
            //std::cout << mm.position.y << std::endl;
-           mm.draw(marbleShader, deltaTime, map,bin);
+           mm.draw(marbleShader, deltaTime, map,bin,booster);
        }
            //std::cout << m.velocity.y << std::endl;
        
@@ -232,30 +234,31 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE  && adding) {
             adding = false;
-            
+            Shader marbleShader("./header/marble.vs", "./header/marble.fs");
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
-            if (mode == DRAW) {
-                //countWoodLength= map[map.size() - 1].draw(shader, normalLine, end,countWoodLength);
-                //countWoodLength += map[map.size() - 1].length;
-            }
-            if (mode == ERASE) {
+            switch (mode)
+            {
+            case NONE:
+                break;
+            case DRAW:
+                break;
+            case ERASE:
                 for (auto& w : map) {
                     w.erase(countWoodLength);
                 }
-            }
-            //std::cout << map[map.size() - 1].vertices.size() << " " << map[map.size() - 1].idx.size() << std::endl;
-
-        }
-
-        if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
-            select = false;
-           
-                Shader marbleShader("./header/marble.vs", "./header/marble.fs");
+                break;
+            case ADD:
+                booster.add(end);
+                break;
+            case MARBLE:
                 marbles.push_back(Marble());
-                marbles[marbles.size() - 1].init(marbleShader, glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f));
-                //marbles[marbles.size() - 1].draw(marbleShader, deltaTime, map, bin);
-            
+                marbles[marbles.size() - 1].init(marbleShader, end);
+                break;
+            default:
+                break;
             }
+          
+        }
     }
 
     else {

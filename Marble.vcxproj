@@ -150,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\BIn.h" />
+    <ClInclude Include="header\Booster.h" />
     <ClInclude Include="header\camera.h" />
     <ClInclude Include="Header\Marble.h" />
     <ClInclude Include="header\Menu.h" />

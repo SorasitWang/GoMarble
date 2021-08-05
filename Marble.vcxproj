@@ -168,6 +168,7 @@
     <None Include="header\icon.fs" />
     <None Include="header\icon.vs" />
     <None Include="header\marble.fs" />
+    <None Include="header\marble.gs" />
     <None Include="header\marble.vs" />
     <None Include="header\text.fs" />
     <None Include="header\text.vs" />

@@ -21,7 +21,7 @@ public:
 	Marble() {
 
 	}
-	unsigned int VAO, VBO, EBO,texture;
+	unsigned int VAO, VBO, EBO,texture,diVAO,diVBO;
 	float radius = 0.1;
 	float count = 0;
 	float h = 1.0f;
@@ -38,7 +38,7 @@ public:
 	int col=-1;
 
 
-	void init(Shader shader,glm::vec3 startPos) {
+	void init(Shader shader,Shader directShader,glm::vec3 startPos) {
 		position = startPos;
 		float vertices[360 / 5 * 5 + 5];
 		int indx[73 * 3], idx = 5;
@@ -101,9 +101,16 @@ public:
 		glBindVertexArray(0);
 		
 
+		directShader.use();
+		glGenVertexArrays(1, &diVAO);
+		glGenBuffers(1, &diVBO);
+
+
+
+
 	}
 
-	void draw(Shader shader,float deltaTime,std::vector<Wood> woods,Bin bin,Booster &boosters) {
+	void draw(Shader shader, Shader directShader,float deltaTime,std::vector<Wood> woods,Bin bin,Booster &boosters) {
 		if (out) return;
 		shader.use();
 		if (bin.checkIn(position)) {
@@ -126,6 +133,29 @@ public:
 		glLineWidth(1);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glDrawElements(GL_TRIANGLES, 73 * 3, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+
+
+		float diVertices[] = {
+			position.x , position.y,position.z
+		};
+
+		directShader.use();
+		directShader.setVec3("direction", glm::normalize(velocity));
+		float slope;
+		if (velocity.x == 0)  slope = -0.00001;
+		else slope = -1 * velocity.x / velocity.y;
+	
+		float s = 0.05;
+		directShader.setVec3("slope",s*glm::normalize(glm::vec3(1/slope,1,0.0f)));
+		glBindVertexArray(diVAO);
+
+		
+		glBindBuffer(GL_ARRAY_BUFFER, diVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(diVertices), diVertices, GL_STATIC_DRAW);
+		glDrawArrays(GL_POINTS, 0, 1);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
 		glBindVertexArray(0);
 
 	}
@@ -163,7 +193,7 @@ public:
 					
 					if (size > 0.3 && !stable && abs(angle - abs(angleWood)) > 10) {
 						velo = glm::vec3(0.5) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
-						std::cout << angle << " " << angleWood << std::endl;
+						//std::cout << angle << " " << angleWood << std::endl;
 					}
 					else if (col != j) {
 						

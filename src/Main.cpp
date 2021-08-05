@@ -91,6 +91,7 @@ int main()
     // ------------------------------------
     Shader ourShader("./header/wood.vs", "./header/wood.fs"); // you can name your shader files however you like
     Shader normalLine("./header/bin.vs", "./header/bin.fs");
+    Shader directLine("./header/bin.vs", "./header/bin.fs","./header/marble.gs");
     Shader marbleShader("./header/icon.vs", "./header/icon.fs");
     Shader iconShader("./header/icon.vs", "./header/icon.fs");
     Shader textShader("./header/text.vs", "./header/text.fs");
@@ -135,7 +136,7 @@ int main()
            w.draw(ourShader,normalLine);
        for (auto &mm : marbles) {
            //std::cout << mm.position.y << std::endl;
-           mm.draw(marbleShader, deltaTime, map,bin,booster);
+           mm.draw(marbleShader,directLine, deltaTime, map,bin,booster);
        }
            //std::cout << m.velocity.y << std::endl;
        
@@ -196,7 +197,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             if (mode == DRAW) {
               countWoodLength = map[map.size() - 1].draw(shader,normalLine, end,countWoodLength);
-              std::cout << countWoodLength << std::endl;
+              //std::cout << countWoodLength << std::endl;
             }
             else if (mode == ERASE) {
                 for (auto &w : map) {
@@ -235,6 +236,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE  && adding) {
             adding = false;
             Shader marbleShader("./header/marble.vs", "./header/marble.fs");
+            Shader directLine("./header/bin.vs", "./header/bin.fs", "./header/marble.gs");
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             switch (mode)
             {
@@ -252,7 +254,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
                 break;
             case MARBLE:
                 marbles.push_back(Marble());
-                marbles[marbles.size() - 1].init(marbleShader, end);
+                marbles[marbles.size() - 1].init(marbleShader, directLine, end);
                 break;
             default:
                 break;

@@ -36,7 +36,7 @@ public:
 	float velo;
 	bool stable = false;
 	int col=-1;
-
+	float minSlope = 0.001;
 
 	void init(Shader shader,Shader directShader,glm::vec3 startPos) {
 		position = startPos;
@@ -161,12 +161,11 @@ public:
 	}
 
 	void onWood(std::vector<Wood> wood) {
-		float angle = abs(glm::degrees(glm::atan(velocity.y / velocity.x)));
+		float angle = handle0(abs(glm::degrees(glm::atan(velocity.y / velocity.x))));
 		//if (angle == 90)angle = -90;
-		//std::cout << angle << std::endl;
-		//std::cout << stable << std::endl;
+
 		glm::vec3 velo = velocity;
-		bool c = false;
+		std::vector<std::pair<glm::vec3,glm::vec3>> above, below;
 		for (int i = 0; i < wood.size(); i++) {
 			auto w = wood[i];
 			if (!(position.x <= wood[i].border.maxX && position.x >= wood[i].border.minX
@@ -175,72 +174,124 @@ public:
 			}
 			for (int j = 0; j < wood[i].vertices.size() - 4; j += 4) {
 
-				float slope = (wood[i].vertices[j + 1] - wood[i].vertices[j + 5]) / (wood[i].vertices[j] - wood[i].vertices[j + 4]);
+				float slope = handle0((wood[i].vertices[j + 1] - wood[i].vertices[j + 5]) / (wood[i].vertices[j] - wood[i].vertices[j + 4]));
+				//if (abs(slope) < minSlope) slope = copysign(minSlope,slope);
 				glm::vec3 tmp = glm::vec3(position.x + 1.0f, position.y + (-1 / slope), position.z);
 				glm::vec3 start = glm::vec3(wood[i].vertices[j], wood[i].vertices[j + 1], wood[i].vertices[j + 2]);
 				glm::vec3 end = glm::vec3(wood[i].vertices[j + 4], wood[i].vertices[j + 5], wood[i].vertices[j + 6]);
 				auto re = lineIntersection(start, end, this->position, tmp);
 				if (wood[i].vertices[j + 3] == 0 && wood[i].vertices[j + 7] == 0) continue;
-				float angleWood = glm::degrees(glm::atan(slope));
-				if ((re.x != FLT_MAX || re.y != FLT_MAX) && glm::distance(re, position) < this->radius) {
-					count = 0;
-					c = true;
+				float angleWood = round(glm::degrees(glm::atan(slope)),4);
+				
+				//std::cout << angleWood << std::endl;
+				if ((re.x != FLT_MAX || re.y != FLT_MAX) 
+					&& glm::distance(re, position) <= this->radius) {
+					/*if (position.y > re.y) {
+						float slope2 = (-1 / slope), dis = this->radius - glm::distance(re, position);
+						position.x = position.x + dis * glm::sin(slope2);
+						position.y = position.y + dis * glm::cos(slope2);
+					}*/
+					//if marble collapse wood , set new position to only touch (distance = radius)
+
+
 					velo = velocity;
 					//std::cout << "angleWood " << angleWood << std::endl;
 					float size = 1;
 					
 					size = glm::distance(velo, glm::vec3(0.0f));
-					
-					if (size > 0.3 && !stable && abs(angle - abs(angleWood)) > 10) {
-						velo = glm::vec3(0.5) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
-						//std::cout << angle << " " << angleWood << std::endl;
+					glm::vec3 reflect = glm::normalize(glm::vec3(1, -1 / slope, 0.0f));
+					//reflect = glm::vec3(0, 1, 0);
+					if (reflect.y == -0) reflect.y = 1;
+					if ( re.y > position.y ||
+						(size > 0.2 && !stable && abs(angle - abs(angleWood)) > 10) ){
+						
+						velo = glm::vec3(0.5) * glm::reflect(velo, reflect);
+						if (velo.y == 0) velo.y =  -FLT_MIN;
+						//std::cout << "bounce  " << slope <<std::endl;
+						//printV3(glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
 					}
 					else if (col != j) {
 						
 						stable = true;
 						col = j;
-						//std::cout << "ss " << angle << " " << angleWood << 90 - angle - angleWood << std::endl;
-
-
-						//glm::normalize(velocity);
-						//glm::vec3 bounce = glm::vec3(0.5) * glm::reflect(velo, glm::normalize(glm::vec3(1, -1 / slope, 0.0f)));
-						velo.x = copysign(1.0, velocity.x)*(size * glm::sin(glm::radians(90 - angle - angleWood))) * glm::cos(glm::radians(angleWood));
-						velo.y = copysign(1.0, velocity.x) * (size * glm::sin(glm::radians(90 - angle - angleWood))) * glm::sin(glm::radians(angleWood));
-						//std::cout << angle << " " << angleWood << " " << glm::sin(glm::radians(90 - angle - angleWood)) << std::endl;
-						//std::cout << ;
-
+						
+						//std::cout << slope << " " << 90 - angle + copysign(-1, slope) * angleWood << std::endl;
+						//std::cout << angle << " " << angleWood << " " << velo.x << " " << velocity.x << " " << velo.y << " " << velocity.y << std::endl;
+						velo.x = copysign(1.0, velocity.x) * (size * glm::sin(glm::radians(90 - angle - copysign(1.0, velocity.x) *angleWood))) * glm::cos(glm::radians(angleWood));
+						velo.y = copysign(1.0, velocity.x) * (size * glm::sin(glm::radians(90 - angle - copysign(1.0, velocity.x) *angleWood))) * glm::sin(glm::radians(angleWood));
+					
+						
+					
 					}
 					else {
 						stable = true;
 					}
-					//std::cout << size << std::endl;
 
-					float sizeG = 0;
-					if (velo.y > 0) sizeG = g * t * glm::sin(glm::radians(angleWood));
-					else sizeG = g * t * glm::sin(glm::radians(angleWood));
-					//std::cout << sizeG << " " << velocity.y << " " << velocity.x << " "<< glm::sin(glm::radians(angleWood))<< std::endl;
+					float sizeG = g * t * glm::sin(glm::radians(angleWood)); 
 					float vfriction = w.staticFrict * g * glm::sin(glm::radians(angleWood)) * t;
-					//velocity.x += -copysign(1.0, velocity.x)*vfriction * glm::cos(glm::radians(angleWood));
-					//velocity.y += -copysign(1.0, velocity.y)*vfriction * glm::sin(glm::radians(angleWood));
-					velo.x += sizeG * glm::cos(glm::radians(angleWood));
 
+					velo.x += sizeG * glm::cos(glm::radians(angleWood));
 					velo.y += sizeG * glm::sin(glm::radians(angleWood));
-					float rat = 1 - (vfriction / glm::distance(velo, glm::vec3(0.0f)));
-					//std::cout << rat << std::endl;
+
+					float rat = handle0(1 - (vfriction / glm::distance(velo, glm::vec3(0.0f))));
 					velo.x *= rat;
 					velo.y *= rat;
-					velocity = velo;
-					return;
+
+					if (re.y > position.y) {
+						if (above.size() == 0) above.push_back(std::make_pair(re, velo));
+						else {
+							if (velocity.x > 0) {
+								if (re.x > above[0].first.x)  above.insert(above.begin(), std::make_pair(re, velo));
+								else above.push_back(std::make_pair(re, velo));
+							}
+							else {
+								if (re.x < above[0].first.x) above.insert(above.begin(), std::make_pair(re, velo));
+								else above.push_back(std::make_pair(re, velo));
+							}
+						}
+					}
+					else if (re.y < position.y) {
+						if (below.size()==0) below.push_back(std::make_pair(re, velo));
+						else {
+							if (velocity.x > 0) {
+								if (re.x > below[0].first.x)  below.insert(below.begin(), std::make_pair(re, velo));
+								else below.push_back(std::make_pair(re, velo));
+							}
+							else {
+								if (re.x < below[0].first.x) below.insert(below.begin(), std::make_pair(re, velo));
+								else below.push_back(std::make_pair(re, velo));
+							}
+						}
+					}
+					
 				}
 				
 			}
 		}
-		
-		if (!c) {
+
+
+		//not col with any wood
+		if (above.size() + below.size() == 0) {
 			count += t;
 			if (count > 0.5) stable = false;
 			velocity.y += g * t;
 		}
+		else if (above.size()==0 && below.size() != 0){ 
+			//choose the most front col point according to direction
+			velocity = below[0].second;
+
+		}
+		else if (above.size() != 0 && below.size() == 0) {
+			velocity = above[0].second;
+		}
+		else if (above.size() != 0 && below.size() != 0) {
+			//bounce back
+			velocity = - (1.0f - (glm::degrees(glm::atan((above[0].first.y-position.y) / (above[0].first.x-position.x)))/90)) * velocity;
+			
+		}
+		if (velocity.y == 0) velocity.y = -FLT_MIN;
+			//velocity = velo;
+			
 	}
 
 	private:

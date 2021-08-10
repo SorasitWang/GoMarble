@@ -1,6 +1,6 @@
 #ifndef UTIL_H    // To make sure you don't declare the function more than once by including the header multiple times.
 #define UTIL_H
-
+#include <string>
 
 #include <iostream>
 typedef glm::vec3 v3;
@@ -36,5 +36,24 @@ v3 lineIntersection(v3 A, v3 B, v3 C, v3 D)
         else
             return v3(FLT_MAX);
     }
+}
+
+
+
+
+float handle0(float x) {
+    if (isnan(x)) return FLT_MAX;
+    else if (x == 0) return FLT_MIN;
+    else if (isinf(abs(x))) return copysign(FLT_MAX,x);
+    return x;
+}
+
+void printV3(glm::vec3 v, std::string label = "") {
+    std::cout << label << " " << v.x << " " << v.y << " " << v.z << std::endl;
+}
+float round(float value, unsigned int prec)
+{
+    float pow_10 = pow(10.0f, (float)prec);
+    return round(value * pow_10) / pow_10;
 }
 #endif

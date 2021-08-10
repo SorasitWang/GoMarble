@@ -31,6 +31,7 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 float xPos, yPos;
+bool mouseCallback = false;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -130,13 +131,16 @@ int main()
         // render the triangle
         booster.draw(iconShader);
         bin.draw(normalLine,deltaTime);
-        menu.draw(normalLine,iconShader,textShader,countWoodLength, 2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
+        menu.draw(normalLine, iconShader, textShader, countWoodLength, 2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
        //w.draw(ourShader);
        for (auto &w : map)
            w.draw(ourShader,normalLine);
        for (auto &mm : marbles) {
            //std::cout << mm.position.y << std::endl;
            mm.draw(marbleShader,directLine, deltaTime, map,bin,booster);
+       }
+       if (mouseCallback) {
+
        }
            //std::cout << m.velocity.y << std::endl;
        
@@ -176,6 +180,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     xPos = xpos; yPos = ypos;
+
+    Shader shader = Shader("./header/wood.vs", "./header/wood.fs");
+    Shader normalLine("./header/bin.vs", "./header/bin.fs");
+    //menu.drawMouse(iconShader ,2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
     if (firstMouse)
     {
         lastX = xpos;
@@ -185,8 +193,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
     float xoffset = xpos - lastX;
     float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-    Shader shader = Shader("./header/wood.vs", "./header/wood.fs");
-    Shader normalLine("./header/bin.vs", "./header/bin.fs");
+    
     lastX = xpos;
     lastY = ypos;
    
@@ -194,10 +201,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
         
         if (!select) return;
         if (adding == true) {
+            //std::cout << "a" << std::endl;
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             if (mode == DRAW) {
               countWoodLength = map[map.size() - 1].draw(shader,normalLine, end,countWoodLength);
-              //std::cout << countWoodLength << std::endl;
+              
             }
             else if (mode == ERASE) {
                 for (auto &w : map) {

@@ -41,7 +41,7 @@ public :
     unsigned int hVAO, hVBO, hEBO;
     std::vector<float> highlight;
     std::vector<int> hIdx;
-    float smoothnes = 0.1;
+    float smoothnes = 0.6;
     float length = 0.0f;
     
 	void init(Shader shader,Shader hShader,glm::vec3 start) {

@@ -56,9 +56,6 @@
     <ClInclude Include="Header\Marble.h">
       <Filter>Header Files\Marble</Filter>
     </ClInclude>
-    <ClInclude Include="header\Util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="header\BIn.h">
       <Filter>Header Files\Bin</Filter>
     </ClInclude>
@@ -66,6 +63,9 @@
       <Filter>Header Files\Menu</Filter>
     </ClInclude>
     <ClInclude Include="header\Booster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="header\Util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -48,6 +48,9 @@ Bin bin = Bin();
 Menu menu = Menu(menuArea);
 Booster booster = Booster();
 Operation mode = NONE;
+std::vector<Shader> allShaders;
+std::map<std::string,int> idxShader;
+
 
 float woodLength = 1.0f;
 float countWoodLength = 5.0f;
@@ -90,18 +93,25 @@ int main()
 
     // build and compile our shader program
     // ------------------------------------
-    Shader ourShader("./header/wood.vs", "./header/wood.fs"); // you can name your shader files however you like
-    Shader normalLine("./header/bin.vs", "./header/bin.fs");
-    Shader directLine("./header/bin.vs", "./header/bin.fs","./header/marble.gs");
-    Shader marbleShader("./header/icon.vs", "./header/icon.fs");
-    Shader iconShader("./header/icon.vs", "./header/icon.fs");
-    Shader textShader("./header/text.vs", "./header/text.fs");
+    allShaders.push_back(Shader("./header/wood.vs", "./header/wood.fs"));
+    idxShader["ourShader"] = 0;
+    allShaders.push_back(Shader("./header/bin.vs", "./header/bin.fs"));
+    idxShader["normalLine"] = 1;
+    allShaders.push_back(Shader("./header/bin.vs", "./header/bin.fs", "./header/marble.gs"));
+    idxShader["directLine"] = 2;
+    allShaders.push_back(Shader("./header/icon.vs", "./header/icon.fs"));
+    idxShader["marbleShader"] = 3;
+    allShaders.push_back(Shader("./header/icon.vs", "./header/icon.fs"));
+    idxShader["iconShader"] = 4;
+    allShaders.push_back(Shader("./header/text.vs", "./header/text.fs"));
+    idxShader["textShader"] = 5;
+      
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
    
-    menu.init(normalLine,iconShader,textShader);
-    bin.init(normalLine);
-    booster.init(iconShader);
+    menu.init(allShaders[idxShader["normalLine"]], allShaders[idxShader["iconShader"]], allShaders[idxShader["textShader"]]);
+    bin.init(allShaders[idxShader["normalLine"]]);
+    booster.init(allShaders[idxShader["iconShader"]]);
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
     // glBindVertexArray(0);
@@ -129,15 +139,15 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // render the triangle
-        booster.draw(iconShader);
-        bin.draw(normalLine,deltaTime);
-        menu.draw(normalLine, iconShader, textShader, countWoodLength, 2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
+        booster.draw(allShaders[idxShader["iconShader"]]);
+        bin.draw(allShaders[idxShader["normalLine"]],deltaTime,menuArea);
+        menu.draw(allShaders[idxShader["normalLine"]],allShaders[idxShader["iconShader"]], allShaders[idxShader["textShader"]], countWoodLength, 2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
        //w.draw(ourShader);
        for (auto &w : map)
-           w.draw(ourShader,normalLine);
+           w.draw(allShaders[idxShader["ourShader"]], allShaders[idxShader["normalLine"]]);
        for (auto &mm : marbles) {
            //std::cout << mm.position.y << std::endl;
-           mm.draw(marbleShader,directLine, deltaTime, map,bin,booster);
+           mm.draw(allShaders[idxShader["marbleShader"]], allShaders[idxShader["directLine"]], deltaTime, map,bin,booster);
        }
        if (mouseCallback) {
 
@@ -181,8 +191,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     xPos = xpos; yPos = ypos;
 
-    Shader shader = Shader("./header/wood.vs", "./header/wood.fs");
-    Shader normalLine("./header/bin.vs", "./header/bin.fs");
+  
     //menu.drawMouse(iconShader ,2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5));
     if (firstMouse)
     {
@@ -204,7 +213,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
             //std::cout << "a" << std::endl;
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             if (mode == DRAW) {
-              countWoodLength = map[map.size() - 1].draw(shader,normalLine, end,countWoodLength);
+               
+              countWoodLength = map[map.size() - 1].draw(allShaders[idxShader["shader"]],allShaders[idxShader["normalLine"]], end,countWoodLength);
               
             }
             else if (mode == ERASE) {
@@ -225,8 +235,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
    
     if (2 * xPos / SCR_WIDTH - 1 > -(1 - menuArea)) {
-        Shader shader = Shader("./header/wood.vs", "./header/wood.fs");
-        Shader normalLine("./header/bin.vs", "./header/bin.fs");
+      
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
             start = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             if (select && !adding) {
@@ -234,7 +243,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
                 adding = true;
                 if (mode == DRAW) {
                     map.push_back(Wood());
-                    map[map.size() - 1].init(shader, normalLine, start);
+                  
+
+                    map[map.size() - 1].init(allShaders[idxShader["shader"]], allShaders[idxShader["normalLine"]], start);
                 }
             }
 
@@ -243,8 +254,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE  && adding) {
             adding = false;
-            Shader marbleShader("./header/marble.vs", "./header/marble.fs");
-            Shader directLine("./header/bin.vs", "./header/bin.fs", "./header/marble.gs");
+            
             end = glm::vec3(2 * xPos / SCR_WIDTH - 1, 2 * (-yPos / SCR_HEIGHT + 0.5), 0.0f);
             switch (mode)
             {
@@ -262,10 +272,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
                 break;
             case MARBLE:
                 marbles.push_back(Marble());
-                marbles[marbles.size() - 1].init(marbleShader, directLine, end);
+                marbles[marbles.size() - 1].init(allShaders[idxShader["marbleShader"]], allShaders[idxShader["directLine"]], end);
                 break;
-            default:
-                break;
+         
             }
           
         }

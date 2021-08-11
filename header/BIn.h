@@ -19,9 +19,9 @@ public:
 	}
 	unsigned int VAO, VBO, EBO;
 	float size = 0.2;
-	glm::vec3 position = glm::vec3(0.0f);
+	glm::vec3 position = glm::vec3(0.0f,-0.8f,0.0f);
 	glm::vec3 color = glm::vec3(1.0, 0.8, 0.4);
-
+	float velo = 1.25;
 	void init(Shader shader) {
 
 		float v[] = {
@@ -54,12 +54,12 @@ public:
 
 	}
 
-	void draw(Shader shader, float deltaTime) {
+	void draw(Shader shader, float deltaTime,float offset) {
 		shader.use();
 		shader.setVec3("color", color);
 		glm::mat4 model = glm::mat4(1.0f);
 
-		move(deltaTime);
+		move(deltaTime,offset);
 		model = glm::translate(model, position);
 		
 		shader.setMat4("model", model);
@@ -71,8 +71,8 @@ public:
 
 	}
 
-	void move(float deltaTime) {
-		//position.x = glm::sin((float)glfwGetTime()) * 0.85;
+	void move(float deltaTime,float offset) {
+		position.x = offset/2 + glm::sin((float)glfwGetTime()*velo)*(1-offset-size) ;
 	}
 
 	bool checkIn(glm::vec3 obj) {

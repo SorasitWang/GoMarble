@@ -31,6 +31,9 @@ https://user-images.githubusercontent.com/60053627/135786595-13ce96bb-714f-4d24-
 https://user-images.githubusercontent.com/60053627/135786600-ccda08d5-1502-4734-8675-8cc2b4f6d09f.mp4
 
 
+## Credit
+   Study from https://learnopengl.com/ and also some of the code. 
+
 
 
      
